@@ -27,8 +27,10 @@ const storage = multer.diskStorage({
     // Generate unique filename
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
-    const filename =
-      path.basename(file.originalname, ext) + "-" + uniqueSuffix + ext;
+
+    // Handle Chinese characters in filename
+    const basename = path.basename(file.originalname, ext);
+    const filename = basename + "-" + uniqueSuffix + ext;
     cb(null, filename);
   },
 });
@@ -149,9 +151,12 @@ export const downloadFile = async (
 
     // Set headers for file download
     res.setHeader("Content-Type", file.mimeType);
+
+    // Handle Chinese characters in filename for download
+    const encodedFileName = encodeURIComponent(file.originalName);
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${file.originalName}"`
+      `attachment; filename*=UTF-8''${encodedFileName}`
     );
 
     // Stream file to response
